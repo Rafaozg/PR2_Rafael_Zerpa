@@ -6,15 +6,24 @@ import random
 
 class Aldeano:
     def __init__(self):
-        nombres = ["Arthur", "Beatrice", "Cédric", "Diana", "Elias", "Fiona"]
-        apellidos = ["Stark", "Targaryen", "Lannister", "Snow", "Tully"]
+        nombres = [
+            "Alejandro", "Beatriz", "Carlos", "Diana", "Eduardo", 
+            "Fiona", "Gabriel", "Hugo", "Isabella", "Juan", 
+            "Karla", "Luis", "Mateo", "Natalia", "Octavio", 
+            "Paula", "Ricardo", "Sofia", "Tomas", "Valentina"
+        ]
+        apellidos = [
+            "Gomez", "Rodriguez", "Fernandez", "Lopez", "Martinez", 
+            "Gonzalez", "Perez", "Sanchez", "Ramirez", "Torres", 
+            "Flores", "Rivera", "Rojas", "Diaz", "Zambrano"
+        ]
         
         self.nombre = random.choice(nombres)
         self.apellido = random.choice(apellidos)
         self.edad = random.randint(18, 50)
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido}"
+        return f"{self.nombre} {self.apellido} (Edad: {self.edad})"
 
 class Almacen:
     def __init__(self):
@@ -60,8 +69,8 @@ class Edificio:
             return False
 
 class Casa(Edificio):
-    def __init__(self, nombre):
-        costo_construccion = {"Madera": 5, "Piedra": 5}
+    def __init__(self, nombre, multiplicador_costo=1):
+        costo_construccion = {"Madera": 5 * multiplicador_costo, "Piedra": 5 * multiplicador_costo}
         super().__init__(nombre, costo_construccion)
 
     def obtener_capacidad(self):
@@ -91,15 +100,17 @@ class EdificioTrabajo(Edificio):
             return True
         elif aldeano in self.lista_activos:
             self.lista_activos.remove(aldeano)
-            print(f"[{self.nombre}] ALERTA: Trabajador retirado. Ciclo reiniciado.")
+            print(f"[{self.nombre}] ALERTA: Trabajador retirado. Ciclo reiniciado y materiales perdidos.")
             self.turno_actual = 0
             self.en_produccion = False
             return True
         return False
 
     def trabajar(self, almacen):
-        if len(self.lista_activos) == 0:
+        if not self.en_produccion:
             self._integrar_espera()
+
+        if len(self.lista_activos) == 0:
             return True
 
         if self.turno_actual == 0 and not self.en_produccion:
@@ -110,7 +121,7 @@ class EdificioTrabajo(Edificio):
             if almacen.consumir_recursos(costo_total):
                 self.en_produccion = True
             else:
-                print(f"[{self.nombre}] DETENIDO: Faltan materiales.")
+                print(f"[{self.nombre}] DETENIDO: Faltan materiales de producción.")
                 return False 
 
         if self.en_produccion:
@@ -123,7 +134,7 @@ class EdificioTrabajo(Edificio):
                 
                 self.turno_actual = 0
                 self.en_produccion = False
-                self._integrar_espera()
+                self._integrar_espera() 
         return True
 
 class Asentamiento:
@@ -135,11 +146,10 @@ class Asentamiento:
 
     def construir_casa(self, nombre):
         multiplicador = len(self.casas) + 1
-        costo_construccion = {"Madera": 5 * multiplicador, "Piedra": 5 * multiplicador}
+        nueva_casa = Casa(nombre, multiplicador)
         
-        print(f"Construyendo '{nombre}' (Costo: {costo_construccion})...")
-        if self.almacen.consumir_recursos(costo_construccion):
-            nueva_casa = Casa(nombre)
+        print(f"Construyendo '{nombre}' (Costo: {nueva_casa.costo_base})...")
+        if self.almacen.consumir_recursos(nueva_casa.costo_base):
             self.casas.append(nueva_casa)
             print(f"Casa '{nombre}' construida con éxito.")
             return True
@@ -163,7 +173,7 @@ class Asentamiento:
 
     def asignar_aldeano(self, aldeano, edificio):
         edificio.lista_espera.append(aldeano)
-        print(f"{aldeano.nombre} asignado a {edificio.nombre} (En espera).")
+        print(f"{aldeano.nombre} {aldeano.apellido} asignado a {edificio.nombre} (En espera).")
 
     def remover_aldeano(self, aldeano, edificio):
         edificio.remover_trabajador(aldeano)
@@ -185,14 +195,16 @@ if __name__ == "__main__":
     
     mi_ciudad.almacen.agregar_recursos({"Madera": 50, "Piedra": 50})
     
+    print("[Construyendo]")
     mi_ciudad.construir_casa("Cabaña Norte")
     mi_ciudad.construir_casa("Cabaña Sur")
     
+    print("\n[Reclutando Aldeanos]")
     aldeano1 = mi_ciudad.reclutar_aldeano()
     aldeano2 = mi_ciudad.reclutar_aldeano()
     aldeano3 = mi_ciudad.reclutar_aldeano()
     aldeano4 = mi_ciudad.reclutar_aldeano()
-    
+
     granja = EdificioTrabajo("Granja", {"Madera": 10}, {}, "Trigo", 1, 1)
     panaderia = EdificioTrabajo("Panadería", {"Piedra": 10}, {"Trigo": 2}, "Pan", 1, 1)
     aserradero = EdificioTrabajo("Aserradero", {"Piedra": 15}, {"Pan": 2}, "Madera", 3, 2)
