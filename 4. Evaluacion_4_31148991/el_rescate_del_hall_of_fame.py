@@ -1,3 +1,5 @@
+#Autor: Rafael Zerpa, 31.148.991
+
 """
 ENUNCIADO:
 Como arquitectos de software, han recibido un "archivador" (partidas_gamers.csv) 
